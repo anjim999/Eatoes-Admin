@@ -209,7 +209,7 @@ export default function MenuPage() {
             {isLoading && <Spinner />}
 
             {/* Error State */}
-            {menuError && (
+            {!!menuError && (
                 <div className="text-center py-12">
                     <p className="text-red-500">Failed to load menu items. Please try again.</p>
                 </div>
