@@ -1,0 +1,42 @@
+name: Production Build & Validation
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-verify:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    # SERVER Validation
+    - name: Install Server Dependencies
+      working-directory: ./server
+      run: npm ci
+
+    - name: Build Server (TypeScript)
+      working-directory: ./server
+      run: npm run build
+
+    # CLIENT Validation
+    - name: Install Client Dependencies
+      working-directory: ./client
+      run: npm ci
+
+    - name: Build Client (Vite + TypeScript)
+      working-directory: ./client
+      run: npm run build
