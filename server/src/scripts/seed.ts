@@ -23,7 +23,7 @@ const menuItems = [
         ingredients: ['shrimp', 'garlic', 'butter', 'parsley', 'lemon'],
         isAvailable: true,
         preparationTime: 12,
-        imageUrl: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400',
+        imageUrl: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=400',
     },
     {
         name: 'Bruschetta Trio',
@@ -127,7 +127,7 @@ const menuItems = [
         ingredients: ['cream', 'vanilla', 'eggs', 'sugar'],
         isAvailable: true,
         preparationTime: 8,
-        imageUrl: 'https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=400',
+        imageUrl: 'https://images.unsplash.com/photo-1470324161839-ce2bb6fa6bc3?w=400',
     },
 
     // Beverages
@@ -139,7 +139,7 @@ const menuItems = [
         ingredients: ['lemon', 'sugar', 'mint', 'sparkling water'],
         isAvailable: true,
         preparationTime: 3,
-        imageUrl: 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=400',
+        imageUrl: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400',
     },
     {
         name: 'Mango Smoothie',
@@ -169,7 +169,7 @@ const menuItems = [
         ingredients: ['strawberries', 'blueberries', 'raspberries', 'vanilla ice cream', 'milk'],
         isAvailable: true,
         preparationTime: 5,
-        imageUrl: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=400',
+        imageUrl: 'https://images.unsplash.com/photo-1577805947697-b98438db64d8?w=400',
     },
 ];
 
