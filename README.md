@@ -4,8 +4,8 @@ A full-stack restaurant admin dashboard built with **TypeScript**, **React 18**,
 
 ## 🚀 Live Demo
 
-- **Frontend**: [Deployed on Netlify](https://your-app.netlify.app)
-- **Backend API**: [Deployed on Render](https://your-api.onrender.com)
+- **Frontend**: [Deployed on Vercel](https://eatoes-admin.vercel.app/)
+- **Backend API**: [Deployed on Render](https://eatoes-admin-gweo.onrender.com)
 
 ## Key Features
 
