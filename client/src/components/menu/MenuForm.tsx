@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Upload, Link, Image } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Select } from '../common/Select';
+import { uploadService } from '../../services/upload.service';
 import type { MenuItem, CreateMenuItemDTO, Category } from '../../types';
 
 interface MenuFormProps {
@@ -32,6 +33,11 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [imageInputType, setImageInputType] = useState<'url' | 'file'>('url');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string>('');
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (item) {
@@ -45,8 +51,20 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
                 imageUrl: item.imageUrl || '',
                 isAvailable: item.isAvailable,
             });
+            if (item.imageUrl) {
+                setPreviewUrl(item.imageUrl);
+            }
         }
     }, [item]);
+
+    // Cleanup preview URL on unmount
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     const validate = (): boolean => {
         const newErrors: Record<string, string> = {};
@@ -65,9 +83,55 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+            if (!allowedTypes.includes(file.type)) {
+                setErrors((prev) => ({ ...prev, image: 'Invalid file type. Only JPEG, PNG, GIF, WebP, and SVG are allowed.' }));
+                return;
+            }
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                setErrors((prev) => ({ ...prev, image: 'File size must be less than 5MB' }));
+                return;
+            }
+
+            setSelectedFile(file);
+            setErrors((prev) => ({ ...prev, image: '' }));
+
+            // Create preview URL
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
+
+        let finalImageUrl = formData.imageUrl.trim() || undefined;
+
+        // If file is selected, upload it first
+        if (imageInputType === 'file' && selectedFile) {
+            try {
+                setIsUploading(true);
+                const uploadResult = await uploadService.uploadImage(selectedFile);
+                // Construct the full URL using the API base URL
+                const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://eatoes-admin-gweo.onrender.com';
+                finalImageUrl = `${baseUrl}${uploadResult.data.imageUrl}`;
+            } catch (error) {
+                setErrors((prev) => ({ ...prev, image: 'Failed to upload image. Please try again.' }));
+                setIsUploading(false);
+                return;
+            } finally {
+                setIsUploading(false);
+            }
+        }
 
         const data: CreateMenuItemDTO = {
             name: formData.name.trim(),
@@ -81,7 +145,7 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
             preparationTime: formData.preparationTime
                 ? parseInt(formData.preparationTime)
                 : undefined,
-            imageUrl: formData.imageUrl.trim() || undefined,
+            imageUrl: finalImageUrl,
             isAvailable: formData.isAvailable,
         };
 
@@ -99,6 +163,22 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
         // Clear error on change
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: '' }));
+        }
+
+        // Update preview for URL
+        if (name === 'imageUrl' && value.trim()) {
+            setPreviewUrl(value.trim());
+        }
+    };
+
+    const handleRemoveFile = () => {
+        setSelectedFile(null);
+        if (previewUrl && previewUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+        }
+        setPreviewUrl(formData.imageUrl || '');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -146,7 +226,7 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
                             error={errors.category}
                         />
                         <Input
-                            label="Price ($)"
+                            label="Price (₹)"
                             name="price"
                             type="number"
                             step="0.01"
@@ -180,23 +260,110 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
                         placeholder="e.g., chicken, garlic, butter"
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input
-                            label="Preparation Time (min)"
-                            name="preparationTime"
-                            type="number"
-                            min="1"
-                            value={formData.preparationTime}
-                            onChange={handleChange}
-                            placeholder="15"
-                        />
-                        <Input
-                            label="Image URL"
-                            name="imageUrl"
-                            value={formData.imageUrl}
-                            onChange={handleChange}
-                            placeholder="https://..."
-                        />
+                    <Input
+                        label="Preparation Time (min)"
+                        name="preparationTime"
+                        type="number"
+                        min="1"
+                        value={formData.preparationTime}
+                        onChange={handleChange}
+                        placeholder="15"
+                    />
+
+                    {/* Image Input Section */}
+                    <div className="space-y-3">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Image
+                        </label>
+
+                        {/* Toggle between URL and File upload */}
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setImageInputType('url')}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${imageInputType === 'url'
+                                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                    }`}
+                            >
+                                <Link className="w-4 h-4" />
+                                URL
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setImageInputType('file')}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${imageInputType === 'file'
+                                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                    }`}
+                            >
+                                <Upload className="w-4 h-4" />
+                                Upload File
+                            </button>
+                        </div>
+
+                        {/* URL Input */}
+                        {imageInputType === 'url' && (
+                            <Input
+                                name="imageUrl"
+                                value={formData.imageUrl}
+                                onChange={handleChange}
+                                placeholder="https://..."
+                            />
+                        )}
+
+                        {/* File Upload */}
+                        {imageInputType === 'file' && (
+                            <div className="space-y-2">
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
+                                >
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                    />
+                                    <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        {selectedFile ? selectedFile.name : 'Click to upload or drag and drop'}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                        JPEG, PNG, GIF, WebP, SVG (max 5MB)
+                                    </p>
+                                </div>
+                                {selectedFile && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveFile}
+                                        className="text-sm text-red-500 hover:text-red-700 transition-colors"
+                                    >
+                                        Remove selected file
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Image Preview */}
+                        {previewUrl && (
+                            <div className="mt-2">
+                                <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Preview:</p>
+                                <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                    <img
+                                        src={previewUrl}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                        onError={() => setPreviewUrl('')}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {errors.image && (
+                            <p className="text-sm text-red-500">{errors.image}</p>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -221,8 +388,8 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
                         <Button type="button" variant="secondary" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button type="submit" isLoading={isLoading}>
-                            {item ? 'Update Item' : 'Add Item'}
+                        <Button type="submit" isLoading={isLoading || isUploading}>
+                            {isUploading ? 'Uploading...' : item ? 'Update Item' : 'Add Item'}
                         </Button>
                     </div>
                 </form>
@@ -230,3 +397,4 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
         </div>
     );
 }
+

@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { ToggleLeft, ToggleRight, Edit, Trash2, Clock, DollarSign } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Edit, Trash2, Clock, IndianRupee } from 'lucide-react';
 import type { MenuItem } from '../../types';
 
 interface MenuCardProps {
@@ -11,6 +11,7 @@ interface MenuCardProps {
 }
 
 export function MenuCard({
+
     item,
     onToggleAvailability,
     onEdit,
@@ -74,7 +75,7 @@ export function MenuCard({
                 {/* Meta */}
                 <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
                     <span className="flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" />
+                        <IndianRupee className="w-4 h-4" />
                         {item.price.toFixed(2)}
                     </span>
                     {item.preparationTime && (

@@ -1,4 +1,4 @@
-import { TrendingUp, ShoppingBag, DollarSign, Clock, ChefHat } from 'lucide-react';
+import { TrendingUp, ShoppingBag, IndianRupee, Clock, ChefHat } from 'lucide-react';
 import { useTopSellers } from '../hooks/useMenu';
 import { useOrderStats } from '../hooks/useOrders';
 import Spinner from '../components/common/Spinner';
@@ -21,8 +21,8 @@ export default function DashboardPage() {
         },
         {
             title: 'Total Revenue',
-            value: `$${(stats?.totalRevenue || 0).toFixed(2)}`,
-            icon: DollarSign,
+            value: `₹${(stats?.totalRevenue || 0).toFixed(2)}`,
+            icon: IndianRupee,
             color: 'bg-green-500',
         },
         {
@@ -119,7 +119,7 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="text-right">
                                         <p className="font-semibold text-gray-900 dark:text-white">
-                                            ${item.totalRevenue.toFixed(2)}
+                                            ₹{item.totalRevenue.toFixed(2)}
                                         </p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">revenue</p>
                                     </div>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                                             {stat.count} orders
                                         </p>
                                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                                            ${stat.totalRevenue.toFixed(2)}
+                                            ₹{stat.totalRevenue.toFixed(2)}
                                         </p>
                                     </div>
                                 </div>
@@ -169,3 +169,5 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+

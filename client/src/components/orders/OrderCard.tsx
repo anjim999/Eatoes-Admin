@@ -67,7 +67,7 @@ export function OrderCard({ order, onUpdateStatus, isUpdating = false }: OrderCa
 
                 <div className="flex items-center gap-4">
                     <span className="text-lg font-bold text-gray-900 dark:text-white">
-                        ${order.totalAmount.toFixed(2)}
+                        ₹{order.totalAmount.toFixed(2)}
                     </span>
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
@@ -113,7 +113,7 @@ export function OrderCard({ order, onUpdateStatus, isUpdating = false }: OrderCa
                                     </div>
                                 </div>
                                 <span className="font-medium text-gray-900 dark:text-white">
-                                    ${(item.price * item.quantity).toFixed(2)}
+                                    ₹{(item.price * item.quantity).toFixed(2)}
                                 </span>
                             </div>
                         ))}

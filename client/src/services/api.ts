@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create a configured axios instance
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://eatoes-admin-gweo.onrender.com/api',
     headers: {
         'Content-Type': 'application/json',
     },
