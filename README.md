@@ -25,18 +25,49 @@
 
 ### 🍽️ Menu Management
 - **Responsive Grid Layout**: Adaptive display for all screen sizes.
-- **Debounced Search**: Optimized search with 300ms delay to reduce API load.
-- **Optimistic UI**: Instant availability toggling with automatic rollback.
+- **Debounced Search**: Optimized search with 300ms delay to reduce API load (**Challenge 1**).
+- **Optimistic UI**: Instant availability toggling with automatic rollback (**Challenge 3**).
 - **Advanced Filtering**: Filter by category, price, and status.
+- **CRUD Operations**: Complete support for adding, editing, and deleting items.
 
 ### 📦 Orders Dashboard
 - **Real-time Tracking**: Monitor order status from Pending to Delivered.
 - **Live Updates**: Status breakdown and revenue metrics.
 - **Pagination**: Efficient server-side pagination for large datasets.
+- **Stats Overview**: Visual cards for total revenue, pending orders, and more.
 
-### 📊 Analytics
-- **Top Sellers**: Aggregated insights on best-performing items.
+### 📊 Analytics & Insights
+- **Top Sellers**: Aggregation pipeline to identify top 5 best-selling items (**Challenge 2**).
 - **Revenue Stats**: Daily, weekly, and monthly revenue tracking.
+- **Status Distribution**: Statistical breakdown of orders by current stage.
+
+## 📁 Project Structure
+
+```bash
+eatos/
+├── server/                    # Backend API
+│   ├── src/
+│   │   ├── config/           # DB connection, environment
+│   │   ├── controllers/      # Request handlers
+│   │   ├── middleware/       # Validation, error handling
+│   │   ├── models/           # Mongoose schemas
+│   │   ├── routes/           # API routes
+│   │   ├── services/         # Business logic
+│   │   ├── validators/       # Joi schemas
+│   │   └── scripts/          # Seed script
+│   └── package.json
+│
+├── client/                    # Frontend App
+│   ├── src/
+│   │   ├── components/       # Reusable UI components
+│   │   ├── context/          # Theme, Toast contexts
+│   │   ├── hooks/            # Custom hooks
+│   │   ├── pages/            # Page components
+│   │   ├── services/         # API calls
+│   │   └── types/            # TypeScript interfaces
+│   └── package.json
+└── README.md
+```
 
 ## 🛠️ Tech Stack
 
@@ -51,6 +82,46 @@
 - **Database**: MongoDB Atlas with Mongoose
 - **Validation**: Joi Schema Validation
 - **Architecture**: Controller-Service-Repository Pattern
+
+## 📚 API Documentation
+
+### Menu Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/menu` | Get all menu items (with filters) |
+| GET | `/api/menu/search?q=query` | Search menu items |
+| GET | `/api/menu/top-sellers` | Get top 5 selling items |
+| POST | `/api/menu` | Create new menu item |
+| PUT | `/api/menu/:id` | Update menu item |
+| PATCH | `/api/menu/:id/availability` | Toggle availability |
+
+### Order Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/orders` | Get all orders (with pagination) |
+| GET | `/api/orders/stats` | Get order statistics |
+| PATCH | `/api/orders/:id/status` | Update order status |
+
+## 🎯 Technical Challenges Implemented
+
+### Challenge 1: Search with Debouncing
+Reduced API load by adding a 300ms delay to search inputs using a custom `useDebounce` hook.
+
+### Challenge 2: MongoDB Aggregation
+Used Mongoose Aggregation Pipelines to calculate top-selling items efficiently:
+```typescript
+Order.aggregate([
+  { $unwind: '$items' },
+  { $group: { _id: '$items.menuItem', totalQuantity: { $sum: '$items.quantity' } } },
+  { $sort: { totalQuantity: -1 } },
+  { $limit: 5 }
+]);
+```
+
+### Challenge 3: Optimistic UI Updates
+Implemented optimistic updates for availability toggles, ensuring the UI feels instant while handling server sync in the background.
 
 ## 🔧 Environment Variables
 
@@ -93,3 +164,4 @@ VITE_API_URL=https://eatoes-admin-gweo.onrender.com/api
    ```
 
 ---
+*Built with ❤️ for the Eatos Team*
