@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Upload, Link, Image } from 'lucide-react';
+import { Upload, Link, Check, Image as ImageIcon } from 'lucide-react'; // Image icon renamed to avoid conflict
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Select } from '../common/Select';
+import { Modal } from '../common/Modal'; // Import reusable Modal
 import { uploadService } from '../../services/upload.service';
 import type { MenuItem, CreateMenuItemDTO, Category } from '../../types';
+import clsx from 'clsx';
 
 interface MenuFormProps {
     item?: MenuItem | null;
@@ -183,85 +185,72 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
-            {/* Form */}
-            <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {item ? 'Edit Menu Item' : 'Add Menu Item'}
-                    </h3>
-                    <button
-                        onClick={onClose}
-                        className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Form Content */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <Modal
+            isOpen={true} // Controlled by parent rendering this component
+            onClose={onClose}
+            title={item ? 'Edit Culinary Masterpiece' : 'Create New Dish'}
+            size="lg"
+        >
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
                     <Input
-                        label="Name"
+                        label="Dish Name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
                         error={errors.name}
-                        placeholder="Enter item name"
+                        placeholder="e.g. Truffle Mushroom Risotto"
                     />
+                </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <Select
-                            label="Category"
-                            name="category"
-                            value={formData.category}
-                            onChange={handleChange}
-                            options={categoryOptions}
-                            error={errors.category}
-                        />
-                        <Input
-                            label="Price (₹)"
-                            name="price"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={formData.price}
-                            onChange={handleChange}
-                            error={errors.price}
-                            placeholder="0.00"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Description
-                        </label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            rows={3}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                            placeholder="Enter description"
-                        />
-                    </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <Select
+                        label="Category"
+                        name="category"
+                        value={formData.category}
+                        onChange={handleChange}
+                        options={categoryOptions}
+                        error={errors.category}
+                    />
                     <Input
-                        label="Ingredients (comma separated)"
+                        label="Price (₹)"
+                        name="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.price}
+                        onChange={handleChange}
+                        error={errors.price}
+                        placeholder="0.00"
+                        leftIcon={<span className="text-gray-500 font-bold">₹</span>}
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                        Description
+                    </label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows={3}
+                        className="w-full px-5 py-4 rounded-2xl border-none ring-1 bg-gray-50/50 dark:bg-gray-900/50 focus:bg-white dark:focus:bg-gray-900 text-gray-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm ring-gray-100 dark:ring-gray-700/50 transition-all placeholder:text-gray-400"
+                        placeholder="Describe the flavors, textures, and key ingredients..."
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <Input
+                        label="Ingredients"
                         name="ingredients"
                         value={formData.ingredients}
                         onChange={handleChange}
-                        placeholder="e.g., chicken, garlic, butter"
+                        placeholder="e.g. Garlic, Thyme, Butter"
                     />
 
                     <Input
-                        label="Preparation Time (min)"
+                        label="Prep Time (min)"
                         name="preparationTime"
                         type="number"
                         min="1"
@@ -269,132 +258,143 @@ export function MenuForm({ item, onSubmit, onClose, isLoading = false }: MenuFor
                         onChange={handleChange}
                         placeholder="15"
                     />
+                </div>
 
-                    {/* Image Input Section */}
-                    <div className="space-y-3">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Image
-                        </label>
+                {/* Image Input Section */}
+                <div className="space-y-3 bg-gray-50 dark:bg-gray-900/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <label className="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                        Dish Presentation
+                    </label>
 
-                        {/* Toggle between URL and File upload */}
-                        <div className="flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setImageInputType('url')}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${imageInputType === 'url'
-                                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                    }`}
-                            >
-                                <Link className="w-4 h-4" />
-                                URL
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setImageInputType('file')}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${imageInputType === 'file'
-                                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                    }`}
-                            >
-                                <Upload className="w-4 h-4" />
-                                Upload File
-                            </button>
-                        </div>
-
-                        {/* URL Input */}
-                        {imageInputType === 'url' && (
-                            <Input
-                                name="imageUrl"
-                                value={formData.imageUrl}
-                                onChange={handleChange}
-                                placeholder="https://..."
-                            />
-                        )}
-
-                        {/* File Upload */}
-                        {imageInputType === 'file' && (
-                            <div className="space-y-2">
-                                <div
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
-                                >
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                    />
-                                    <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        {selectedFile ? selectedFile.name : 'Click to upload or drag and drop'}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                        JPEG, PNG, GIF, WebP, SVG (max 5MB)
-                                    </p>
-                                </div>
-                                {selectedFile && (
-                                    <button
-                                        type="button"
-                                        onClick={handleRemoveFile}
-                                        className="text-sm text-red-500 hover:text-red-700 transition-colors"
-                                    >
-                                        Remove selected file
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Image Preview */}
-                        {previewUrl && (
-                            <div className="mt-2">
-                                <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Preview:</p>
-                                <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                                    <img
-                                        src={previewUrl}
-                                        alt="Preview"
-                                        className="w-full h-full object-cover"
-                                        onError={() => setPreviewUrl('')}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {errors.image && (
-                            <p className="text-sm text-red-500">{errors.image}</p>
-                        )}
+                    {/* Toggle between URL and File upload */}
+                    <div className="bg-white dark:bg-gray-800 p-1.5 rounded-xl inline-flex shadow-sm border border-gray-100 dark:border-gray-700">
+                        <button
+                            type="button"
+                            onClick={() => setImageInputType('url')}
+                            className={clsx(
+                                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all",
+                                imageInputType === 'url'
+                                    ? "bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm"
+                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-300"
+                            )}
+                        >
+                            <Link className="w-3.5 h-3.5" />
+                            Image URL
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setImageInputType('file')}
+                            className={clsx(
+                                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all",
+                                imageInputType === 'file'
+                                    ? "bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm"
+                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-300"
+                            )}
+                        >
+                            <Upload className="w-3.5 h-3.5" />
+                            Upload File
+                        </button>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    {/* URL Input */}
+                    {imageInputType === 'url' && (
+                        <Input
+                            name="imageUrl"
+                            value={formData.imageUrl}
+                            onChange={handleChange}
+                            placeholder="https://example.com/image.jpg"
+                            className="bg-white dark:bg-gray-800"
+                        />
+                    )}
+
+                    {/* File Upload */}
+                    {imageInputType === 'file' && (
+                        <div className="space-y-3 animate-fade-in">
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="group border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl p-8 text-center cursor-pointer hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-all"
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                />
+                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                                </div>
+                                <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                                    {selectedFile ? selectedFile.name : 'Click to select an image'}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1 font-medium">
+                                    Max 5MB • JPG, PNG, WEBP
+                                </p>
+                            </div>
+                            {selectedFile && (
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveFile}
+                                    className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors px-2"
+                                >
+                                    Remove selection
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Image Preview */}
+                    {previewUrl && (
+                        <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm animate-fade-in">
+                            <p className="text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Live Preview</p>
+                            <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900">
+                                <img
+                                    src={previewUrl}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                    onError={() => setPreviewUrl('')}
+                                />
+                                <div className="absolute inset-0 ring-1 ring-black/5 rounded-xl pointer-events-none" />
+                            </div>
+                        </div>
+                    )}
+
+                    {errors.image && (
+                        <p className="text-xs font-bold text-red-500 animate-slide-in-right">{errors.image}</p>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-800/50">
+                    <div className="relative flex items-center">
                         <input
                             type="checkbox"
                             id="isAvailable"
                             name="isAvailable"
                             checked={formData.isAvailable}
                             onChange={handleChange}
-                            className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            className="peer h-6 w-6 cursor-pointer appearance-none rounded-lg border-2 border-gray-300 dark:border-gray-600 transition-all checked:border-primary-500 checked:bg-primary-500 hover:border-primary-400"
                         />
-                        <label
-                            htmlFor="isAvailable"
-                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                        >
-                            Available for order
-                        </label>
+                        <Check className="pointer-events-none absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                     </div>
+                    <label
+                        htmlFor="isAvailable"
+                        className="text-sm font-bold text-gray-700 dark:text-gray-200 cursor-pointer select-none"
+                    >
+                        Available for ordering immediately
+                    </label>
+                </div>
 
-                    {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <Button type="button" variant="secondary" onClick={onClose}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" isLoading={isLoading || isUploading}>
-                            {isUploading ? 'Uploading...' : item ? 'Update Item' : 'Add Item'}
-                        </Button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                {/* Actions */}
+                <div className="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
+                    <Button type="button" variant="ghost" onClick={onClose} className="hover:bg-gray-100 dark:hover:bg-gray-700/50">
+                        Cancel
+                    </Button>
+                    <Button type="submit" isLoading={isLoading || isUploading} className="px-8 shadow-xl shadow-primary-500/20">
+                        {isUploading ? 'Uploading...' : item ? 'Save Changes' : 'Create Dish'}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
     );
 }
 

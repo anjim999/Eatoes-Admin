@@ -18,36 +18,43 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         return (
             <div className="w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">
                         {label}
                     </label>
                 )}
-                <select
-                    ref={ref}
-                    className={clsx(
-                        'w-full px-4 py-2.5 rounded-lg border transition-all duration-200',
-                        'bg-white dark:bg-gray-800',
-                        'text-gray-900 dark:text-gray-100',
-                        'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
-                        error
-                            ? 'border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 dark:border-gray-600',
-                        className
-                    )}
-                    {...props}
-                >
-                    {placeholder && (
-                        <option value="" disabled>
-                            {placeholder}
-                        </option>
-                    )}
-                    {options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
-                {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+                <div className="relative">
+                    <select
+                        ref={ref}
+                        className={clsx(
+                            'w-full px-5 py-3.5 rounded-2xl border-none ring-1 transition-all duration-300 appearance-none',
+                            'bg-gray-50/50 dark:bg-gray-900/50 focus:bg-white dark:focus:bg-gray-900',
+                            'text-gray-900 dark:text-white font-bold',
+                            'focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm',
+                            error
+                                ? 'ring-red-500/50 focus:ring-red-500'
+                                : 'ring-gray-100 dark:ring-gray-700/50',
+                            className
+                        )}
+                        {...props}
+                    >
+                        {placeholder && (
+                            <option value="" disabled>
+                                {placeholder}
+                            </option>
+                        )}
+                        {options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+                {error && <p className="mt-2 ml-1 text-xs font-bold text-red-500 animate-fade-in">{error}</p>}
             </div>
         );
     }

@@ -1,4 +1,5 @@
-import { Fragment, ReactNode } from 'react';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { X } from 'lucide-react';
 
@@ -11,7 +12,14 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
+    if (!isOpen || !mounted) return null;
 
     const sizes = {
         sm: 'max-w-sm',
@@ -20,34 +28,34 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
         xl: 'max-w-xl',
     };
 
-    return (
+    const modalContent = (
         <Fragment>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
+                className="fixed inset-0 z-[9999] bg-gray-900/60 backdrop-blur-md transition-all duration-300 animate-fade-in"
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-fade-in pointer-events-none">
                 <div
                     className={clsx(
-                        'w-full bg-white dark:bg-gray-800 rounded-xl shadow-2xl',
+                        'w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl ring-1 ring-black/5 pointer-events-auto',
                         'transform transition-all',
-                        'max-h-[90vh] overflow-hidden flex flex-col',
+                        'max-h-[85vh] overflow-hidden flex flex-col',
                         sizes[size]
                     )}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
                     {title && (
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-700/50">
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">
                                 {title}
                             </h3>
                             <button
                                 onClick={onClose}
-                                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="p-2 -mr-2 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all active:scale-95"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -55,9 +63,11 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                     )}
 
                     {/* Content */}
-                    <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+                    <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">{children}</div>
                 </div>
             </div>
         </Fragment>
     );
+
+    return createPortal(modalContent, document.body);
 }
