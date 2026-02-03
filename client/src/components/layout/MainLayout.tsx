@@ -48,9 +48,7 @@ export default function MainLayout() {
             {/* Mobile Header */}
             <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-40 flex items-center justify-between px-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary-600 rounded-lg">
-                        <UtensilsCrossed className="w-6 h-6 text-white" />
-                    </div>
+                    <img src="/logo-new.png" alt="Eatoes" className="w-10 h-10" />
                     <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                         Eatoes
                     </span>
@@ -82,9 +80,7 @@ export default function MainLayout() {
             >
                 <div className="p-6 flex items-center justify-between lg:justify-start gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary-600 rounded-lg shadow-lg shadow-primary-500/20">
-                            <UtensilsCrossed className="w-6 h-6 text-white" />
-                        </div>
+                        <img src="/logo-new.png" alt="Eatoes" className="w-12 h-12" />
                         <div className="flex flex-col">
                             <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent leading-tight">
                                 Eatoes Admin
